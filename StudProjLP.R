@@ -5,21 +5,23 @@ install.packages('rgdal')
 library(raster)
 library(rgdal)
 
+setwd('\data')
+
 ## read images and set min and max vals and minus values to 0
 
-r13 = raster('D:\\bangalore_2013.tif')
+r13 = raster('bangalore_2013.tif')
 r13 = setMinMax(r13)
 r13 = reclassify(r13, cbind(-Inf, 0, 0), right=FALSE)
-r14 = raster('D:\\bangalore_2014.tif')
+r14 = raster('bangalore_2014.tif')
 r14 = setMinMax(r14)
 r14 = reclassify(r14, cbind(-Inf, 0, 0), right=FALSE)
-r15 = raster('D:\\bangalore_2015.tif')
+r15 = raster('bangalore_2015.tif')
 r15 = setMinMax(r15)
 r15 = reclassify(r15, cbind(-Inf, 0, 0), right=FALSE)
-r17 = raster('D:\\bangalore_2017.tif')
+r17 = raster('bangalore_2017.tif')
 r17 = setMinMax(r17)
 r17 = reclassify(r17, cbind(-Inf, 0, 0), right=FALSE)
-r18 = raster('D:\\bangalore_2018.tif')
+r18 = raster('bangalore_2018.tif')
 r18 = setMinMax(r18)
 r18 = reclassify(r18, cbind(-Inf, 0, 0), right=FALSE)
 s = stack(r13,r14,r15,r17,r18)
@@ -129,8 +131,8 @@ axis(1, at = seq(0, 458834, by = 10000))
 
 ## plot differences between 16 and 15
 ## iiregular values in 2016
-rindia16 = raster("D:\\processed_data\\2016_india.tif")
-rindia15 = raster("D:\\processed_data\\2015_india.tif")
+rindia16 = raster("2016_india.tif")
+rindia15 = raster("2015_india.tif")
 s16 = sd(as.matrix(rindia16))
 m16 = mean(as.matrix(rindia16))
 smp16 = m16+(s16*2)
@@ -349,7 +351,7 @@ install.packages('dplyr')
 library(dplyr)
 
 ## add population data
-pop = read.csv('D:\\population/Copy of population growth data.csv', sep = ';')
+pop = read.csv('Copy of population growth data.csv', sep = ';')
 pop_bangalore = filter(pop, pop$City == "Bangalore")
 pop_bangalore = pop_bangalore[c(-1, -5),]
 pop_bangalore
@@ -400,12 +402,12 @@ pop_raster2 = st_warp(st_as_stars(pop_raster1), grid, method = "average", use_gd
 par(mfrow=c(1,1))
 summary(pop_raster1[])
 pop_raster2
-write_stars(pop_raster2, 'D:/population/resampledpop.tif', update = T )
+write_stars(pop_raster2, 'resampledpop.tif', update = T )
 
 ## bortle scale range in population - 2015
 
 sum(r15[] < 0) 
-pop_resampled = raster('D:/population/resampledpop.tif')
+pop_resampled = raster('resampledpop.tif')
 
 plot(pop_resampled)
 plot(r15)
@@ -423,21 +425,21 @@ sum(is.na(test[]))
 masked = mask(pop_resampled, test)
 masked[] 
 plot(masked)
-writeRaster(masked, 'D:/masked_75.tif', overwrite= TRUE)
+writeRaster(masked, 'masked_75.tif', overwrite= TRUE)
 
-pop_raster = raster("D:/populationdense2015.tif")
+pop_raster = raster("populationdense2015.tif")
 pop_raster
 setMinMax(pop_raster)
 
-pop_raster1 = raster('D:/extracted_pop.tif')
+pop_raster1 = raster('extracted_pop.tif')
 plot(pop_raster1)
 setMinMax(pop_raster1)
 
 
 
 
-## population prediction for 2017 and 2018 using radiance vals
-## change for r17 for all the bortle ranges and then for r18
+## population prediction for 2017 and 2018 using radiance vals 
+## change for r17 for suburban sky bortle range and then for r18
 
 test = reclassify(r18, cbind(0,1.5, NA), right=FALSE)
 test = reclassify(test, cbind(1.5 ,75, 1), right=FALSE)
@@ -447,7 +449,7 @@ sum(is.na(test[]))
 masked = mask(pop_resampled, test)
 masked[] 
 
-writeRaster(masked, 'D:/masked_18_sub.tif', overwrite= TRUE)
+writeRaster(masked, 'masked_18_sub.tif', overwrite= TRUE)
 par(mfrow=c(1,2))
 plot(r18_classified, col=grey(1:100/100), main = 'Bangalore Bortle Scale 2018')
 plot(masked, col=grey(1:100/100), main = 'Predicted Population Density Suburban Sky 2018')
@@ -458,9 +460,9 @@ sum(masked[], na.rm = T) -
 ## process plots
 install.packages('colorRamps')
 library(colorRamps)
-masked1 = raster("D:/masked_0.25-1.5.tif")
-masked2 = raster("D:/masked_1.5-75.tif")
-masked3 = raster("D:/masked_75.tif")
+masked1 = raster("masked_0.25-1.5.tif")
+masked2 = raster("masked_1.5-75.tif")
+masked3 = raster("masked_75.tif")
 
 #plot resampling
 par(mfrow=c(1,2))
