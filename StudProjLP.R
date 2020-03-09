@@ -54,7 +54,7 @@ plot(r15_classified, col=grey(1:100/100), main = 'Bangalore Bortle Scale Classif
 plot(r17_classified, col=grey(1:100/100), main = 'Bangalore Bortle Scale Classification 2017')
 plot(r18_classified, col=grey(1:100/100), main = 'Bangalore Bortle Scale Classification 2018')
 
-##bortle scale percentage
+## bortle scale percentage
 sum(r13[] <= 0.15) / ncell(r13)
 sum(0.15 < r13[] & r13[] < 0.25) / ncell(r13)
 sum(0.25 < r13[] & r13[] < 0.5) / ncell(r13)
@@ -99,9 +99,6 @@ sum(1.5 < r18[] & r18[] < 10) / ncell(r18)
 sum(10 < r18[] & r18[] < 50) / ncell(r18)
 sum(50 < r18[] & r18[] < 75) / ncell(r18)
 sum(r18[] >= 75) / ncell(r18)
-
-
-
 
 
 
@@ -192,9 +189,7 @@ m = c(0 , su14-su13, su15-su13, su15-su14, su17-su13, su17-su14, su17-su15, su18
 m
 matrix(m, nrow = 5, ncol = 5, dimnames = years)
 
-?matrix
-
-ncell(r13[] == 0)
+## create trend data.frame
 
 tr = data.frame(RadianceMean = c(m13, m14, m15, m17, m18), 
                 RadianceSd = c(sd13, sd14, sd15, sd17, sd18), 
@@ -204,12 +199,14 @@ tr = data.frame(RadianceMean = c(m13, m14, m15, m17, m18),
                 Date = years)
 
 tr
+
 install.packages('ggplot2')
 library(ggplot2)
 
 install.packages('cowplot')
 library(cowplot)
 
+## plot stats
 
 pl1 = ggplot(tr, aes(years, RadianceMean)) +
   geom_line(color='blue', size=1) +
@@ -237,7 +234,6 @@ tr$Date = c("2013-01-01", "2014-01-01", "2015-01-01", "2017-01-01", "2018-01-01"
 plot(pl1)
 plot_grid(pl1, pl4, pl5, align = 'v', ncol = 1)
 
-hist(tr$RadianceMean)
 
 ## raster algebra - diff between every 2 years
 ex = extent(r13)
@@ -301,7 +297,7 @@ sum(s1813[] <= 0 ) / ncell(s1813)
 
 
 
-# plots
+## plots of raster algebra
 
 s1413rec = s1413
 s1413rec[s1413 < 0] = 0
@@ -351,6 +347,7 @@ sum(s1715[] == 0)
 
 install.packages('dplyr')
 library(dplyr)
+
 ## add population data
 pop = read.csv('D:\\population/Copy of population growth data.csv', sep = ';')
 pop_bangalore = filter(pop, pop$City == "Bangalore")
@@ -392,33 +389,7 @@ plot(tr$RadianceSum, pop_bangalore$Population, pch = 16, cex = 1.3, col = "purpl
 abline(lm_bangalore)
 
 
-## bortle scale range in population
-sum(r15[] < 0) 
-pop_resampled = raster('D:/population/resampledpop.tif')
-
-plot(pop_resampled)
-plot(r15)
-pop_resampled
-r15
-test = reclassify(r15, cbind(0, 75, NA), right=FALSE)
-test = reclassify(test, cbind(75,Inf, 1), right=FALSE)
-test = reclassify(test, cbind(75, Inf,NA), right=FALSE)
-plot(test)
-sum(is.na(test[]))
-masked = mask(pop_resampled, test)
-masked[] 
-plot(masked)
-writeRaster(masked, 'D:/masked_75.tif', overwrite= TRUE)
-
-?mask
-pop_raster = raster("D:/populationdense2015.tif")
-pop_raster
-setMinMax(pop_raster)
-
-pop_raster1 = raster('D:/extracted_pop.tif')
-plot(pop_raster1)
-setMinMax(pop_raster1)
-
+## resample population raster
 
 install.packages('stars')
 library(stars)
@@ -431,21 +402,43 @@ summary(pop_raster1[])
 pop_raster2
 write_stars(pop_raster2, 'D:/population/resampledpop.tif', update = T )
 
-plot(st_as_stars(pop_raster1))
-plot(pop_raster2)
+## bortle scale range in population - 2015
 
-
-
-
-
-## population prediction using radiance vals
-
+sum(r15[] < 0) 
 pop_resampled = raster('D:/population/resampledpop.tif')
 
 plot(pop_resampled)
 plot(r15)
 pop_resampled
 r15
+
+## each time change test to the required bortle scale range
+## 0.25 - 1, 1 - 75, 75 and up
+
+test = reclassify(r15, cbind(0, 75, NA), right=FALSE)
+test = reclassify(test, cbind(75,Inf, 1), right=FALSE)
+test = reclassify(test, cbind(75, Inf,NA), right=FALSE)
+plot(test)
+sum(is.na(test[]))
+masked = mask(pop_resampled, test)
+masked[] 
+plot(masked)
+writeRaster(masked, 'D:/masked_75.tif', overwrite= TRUE)
+
+pop_raster = raster("D:/populationdense2015.tif")
+pop_raster
+setMinMax(pop_raster)
+
+pop_raster1 = raster('D:/extracted_pop.tif')
+plot(pop_raster1)
+setMinMax(pop_raster1)
+
+
+
+
+## population prediction for 2017 and 2018 using radiance vals
+## change for r17 for all the bortle ranges and then for r18
+
 test = reclassify(r18, cbind(0,1.5, NA), right=FALSE)
 test = reclassify(test, cbind(1.5 ,75, 1), right=FALSE)
 test = reclassify(test, cbind(75, Inf,NA), right=FALSE)
@@ -460,8 +453,6 @@ plot(r18_classified, col=grey(1:100/100), main = 'Bangalore Bortle Scale 2018')
 plot(masked, col=grey(1:100/100), main = 'Predicted Population Density Suburban Sky 2018')
 sum(masked[], na.rm = T) - 
   sum(masked1[], na.rm = T)
-
-
 
 
 ## process plots
@@ -494,228 +485,7 @@ plot(masked3, col=grey(1:100/100), main='Population Density Inner City Sky 2015'
 
 
 
-####same for pune
 
 
 
 
-pop_resampledP = raster("D:/pune/Pune_2013-2018/pop_resampledP.tif")
-
-plot(pop_resampledP)
-plot(P15)
-pop_resampledP
-pune15
-test = reclassify(P15, cbind(-Inf, 0.25, NA), right=FALSE)
-test = reclassify(test, cbind(0.25, 1.5, 1), right=FALSE)
-test = reclassify(test, cbind(1.5, Inf,NA), right=FALSE)
-plot(test)
-sum(is.na(test[]))
-masked = mask(pop_resampledP, test)
-masked[] 
-plot(masked)
-writeRaster(masked, 'D:/pune/Pune_2013-2018/maskedP_0.25-1.5.tif', overwrite=T)
-
-test = reclassify(P15, cbind(-Inf, 1.5, NA), right=FALSE)
-test = reclassify(test, cbind(1.5, 75, 1), right=FALSE)
-test = reclassify(test, cbind(1.5, Inf,NA), right=FALSE)
-plot(test)
-sum(is.na(test[]))
-masked1 = mask(pop_resampledP, test)
-masked[] 
-plot(masked)
-writeRaster(masked1, 'D:/pune/Pune_2013-2018/maskedP_1.5-75.tif', overwrite=T)
-
-test = reclassify(P15, cbind(-Inf, 75, NA), right=FALSE)
-#test = reclassify(test, cbind(1.5, 75, 1), right=FALSE)
-test = reclassify(test, cbind(75, Inf,1), right=FALSE)
-plot(test)
-sum(is.na(test[]))
-masked2 = mask(pop_resampledP, test)
-masked[] 
-plot(masked)
-writeRaster(masked2, 'D:/pune/Pune_2013-2018/maskedP75.tif', overwrite=T)
-
-
-#plot resampling
-par(mfrow=c(1,2))
-pop_raster1
-
-plot(pop_raster1)
-plot(pop_resampled)
-
-#plot plot masked
-par(mfrow=c(2,2))
-plot(p15_classified, col=grey(1:100/100), main='Pune Bortle Scale 2015')
-plot(masked, col=grey(1:100/100), main='Population Density Rural Sky 2015')
-plot(masked1, col=grey(1:100/100), main='Population Density Suburban Sky 2015')
-plot(masked2, col=grey(1:100/100), main='Population Density Inner City Sky 2015')
-
-
-
-max(pune15[])
-# pop_raster = raster("D:/populationdense2015.tif")
-# pop_raster
-# setMinMax(pop_raster)
-
-pop_rasterP1 = raster("D:/pune/Pune_2013-2018/clipped_popP.tif")
-plot(pop_rasterP1)
-setMinMax(pop_raster1)
-
-pune15 = raster("D:/pune/Pune_2013-2018/Pune_2015.tif")
-pune15
-install.packages('stars')
-library(stars)
-grid1 = st_as_stars(st_bbox(pune15), dx=  0.004166667, dy=0.004166667)
-plot(grid1)
-
-pop_rasterP2 = st_warp(st_as_stars(pop_rasterP1), grid1, method = "average", use_gdal = TRUE)
-par(mfrow=c(1,1))
-summary(pop_raster1[])
-pop_rasterP2
-write_stars(pop_rasterP2, 'D:/pune/Pune_2013-2018/pop_resampledP.tif')
-
-plot(st_as_stars(pop_raster1))
-plot(pop_rasterP2)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-###########draft############
-
-# ##
-# sum(values(r13)>50)
-# sum(values(r14)>50)
-# sum(valu)
-# m13 = as.numeric(sum(values(r13) > 0.01))
-# m14 = as.numeric(sum(values(r14)> 0.01))
-# m15 = as.numeric(sum(values(r15)> 0.01))
-# m17 = as.numeric(sum(values(r17)> 0.01))
-# m18 = as.numeric(sum(values(r18)> 0.01))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## calculate std*2 and mean for enhancement
-# s13 = sd(as.matrix(r13))
-# m13 = mean(as.matrix(r13))
-# smp13 = m13+(s13*2)
-# smn13 = m13-(s13*2)
-# e13= seq(smn13, smp13)
-# 
-# s14 = sd(as.matrix(r14))
-# m14 = mean(as.matrix(r14))
-# smp14 = m14+(s14*2)
-# smn14 = m14-(s14*2)
-# 
-# s15 = sd(as.matrix(r15))
-# m15 = mean(as.matrix(r15))
-# smp15 = m15+(s15*2)
-# smn15 = m15-(s15*2)
-# 
-# 
-# s17 = sd(as.matrix(r17))
-# m17 = mean(as.matrix(r17))
-# smp17 = m17+(s17*2)
-# smn17 = m17-(s17*2)
-# 
-# s18 = sd(as.matrix(r18))
-# m18 = mean(as.matrix(r18))
-# smp18 = m18+(s18*2)
-# smn18 = m18-(s18*2)
-
-
-# ## hist to see distribution of pixel radiance values 
-# hist(r13, breaks=700, maxpixels= 458834, xlim=c(50,151.81), ylim=c(0,30), 
-#      main = 'Bangalore 2013 Radiance Distribtuion', col= 'yellow', xlab='Radiance Value')
-# hist(r14, breaks=700, maxpixels= 458834, xlim=c(50,196.75), ylim=c(0,50))
-# hist(r15, breaks=700, maxpixels= 458834, xlim=c(50,187.77), ylim=c(0,30))
-# max(r15[])
-# 
-# r13b = calc(r13, fun = sum(e13))
-# 
-# 
-# plot(r13, col=grey(1:100/100))
-# b = stack(r13, r14, r15, r17, r18)
-# plot(b, col=grey(1:100/100))
-# breaks = seq(smn13,smp13)
-# breaks
-# plot(r13, breaks=breaks, col=grey(1:100/100))
-# 
-# r13
-# r14
-# r15
-# r17
-# r18
-# 
-# # rescale <- function(x, x.min = NULL, x.max = NULL, new.min = 0, new.max = 1) {
-# #   if(is.null(x.min)) x.min = min(x)
-# #   if(is.null(x.max)) x.max = max(x)
-# #   new.min + (x - x.min) * ((new.max - new.min) / (x.max - x.min))
-# # }
-# 
-# 
-
-# 
-# 
-# mv13 = as.numeric(max(values(r13)))
-# mv14 = as.numeric(max(values(r14)))
-# mv15 = as.numeric(max(values(r15)))
-# mv17 = as.numeric(max(values(r17)))
-# mv18 = as.numeric(max(values(r18)))
-# mv15
-# 
-# maxv =  data.frame(Radiance = c(mv13, mv14, mv15, mv17, mv18), Date = years)
-# plot(maxv$Date, maxv$Radiance, t='l', xlim=as.Date(c("2010-12-01", "2018-12-31")))
-# 
-# max(r13[])
-# max(r18[])
-# ## create stars obj
-# install.packages('stars')
-# library(stars)
-# r13_s = st_as_stars(r13)
-# r13_s
-# 
-# r14_s = st_as_stars(r14)
-# r14_s
-# 
-# 
-# 
-# 
-# #r13_s = st_set_dimensions(r13_s, 'band', values = years[1], names = 'time')
-# 
-# x = r13_s[, , , drop = TRUE]
-# y = r14_s[, , , drop = TRUE]
-# x = round(x, 2)
-# y = round(y, 2)
-# plot(x, text_values = TRUE, main = "r_13", col = pal(10), breaks = 'equal')
-# plot(y, text_values = TRUE, main = "r_14", col = pal(6))
