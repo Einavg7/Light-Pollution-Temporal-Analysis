@@ -1,6 +1,8 @@
-# Light-Pollution-Temporal-Analysis
-Remote sensing study project analyzing environmental change - Light Pollution and population as a contributing factor.
+# Light Pollution Temporal Analysis
 
+Remote sensing study project analyzing environmental change - Light Pollution and population as a contributing factor.  
+The study areas selected for analysis- Bangalore and Pune, India.  
+The time-span selected - 5 consecutive years (2013-2018, without 2016 due to unreliable data) of satellite images from the last day of December each year. 
 
 data sources:
 
